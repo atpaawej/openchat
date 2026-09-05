@@ -1,0 +1,70 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #09090b;
+    --muted: #f4f4f5;
+    --muted-foreground: #71717a;
+    --border: #e4e4e7;
+    --card: #ffffff;
+    --card-foreground: #09090b;
+    --primary: #18181b;
+    --primary-foreground: #fafafa;
+    --secondary: #f4f4f5;
+    --secondary-foreground: #18181b;
+    --accent: #f4f4f5;
+    --accent-foreground: #18181b;
+    --destructive: #ef4444;
+    --destructive-foreground: #fafafa;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: #212121;
+    --foreground: #ececec;
+    --muted: #2f2f2f;
+    --muted-foreground: #8e8e8e;
+    --border: #2f2f2f;
+    --card: #181818;
+    --card-foreground: #ececec;
+    --primary: #ffffff;
+    --primary-foreground: #09090b;
+    --secondary: #2f2f2f;
+    --secondary-foreground: #ececec;
+    --accent: #2f2f2f;
+    --accent-foreground: #ececec;
+    --destructive: #7f1d1d;
+    --destructive-foreground: #fca5a5;
+  }
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #a1a1aa40;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a1a1aa80;
+}
