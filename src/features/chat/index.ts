@@ -10,3 +10,5 @@ export * from "./components/citation-pills";
 export * from "./components/message-item";
 export * from "./components/message-list";
 export * from "./components/chat-container";
+export * from "./components/chat-shell";
+export * from "./components/chat-interface";

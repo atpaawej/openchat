@@ -17,6 +17,8 @@ export default async function ChatThreadPage({
   return (
     <ChatInterface
       initialSessionId={id}
+      initialSessionTitle={session?.title}
+      projectId={session?.projectId ?? undefined}
       initialMessages={messages}
       defaultModel={session?.model || settings.defaultModel}
       defaultProvider={session?.provider || settings.defaultProvider}

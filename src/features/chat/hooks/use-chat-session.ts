@@ -10,6 +10,7 @@ export interface SendMessageOptions {
   attachments?: ComposerAttachment[];
   modelId: string;
   providerId?: string;
+  projectId?: string | null;
   webSearchEnabled?: boolean;
   searchEngine?: string;
   reasoningEnabled?: boolean;
@@ -107,6 +108,7 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
           signal: controller.signal,
           body: JSON.stringify({
             sessionId,
+            projectId: sendOpts.projectId,
             parentMessageId: parentId,
             prompt: sendOpts.prompt,
             attachments: sendOpts.attachments,
@@ -207,6 +209,9 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
                 if (data.assistantMessageId) {
                   branching.setActiveLeafId(data.assistantMessageId);
                 }
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("openchat-refresh-sidebar"));
+                }
               }
             } catch {
               // Ignore partial JSON parsing errors in line buffer
@@ -233,7 +238,13 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
     async (
       messageId: string,
       newContent: string,
-      modelConfig?: { modelId: string; providerId?: string; webSearchEnabled?: boolean; reasoningEnabled?: boolean }
+      modelConfig?: {
+        modelId: string;
+        providerId?: string;
+        projectId?: string | null;
+        webSearchEnabled?: boolean;
+        reasoningEnabled?: boolean;
+      }
     ) => {
       const msg = messages.find((m) => m.id === messageId);
       if (!msg) return;
@@ -243,6 +254,7 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
         parentMessageId: msg.parentId ?? null,
         modelId: modelConfig?.modelId || "gpt-4o",
         providerId: modelConfig?.providerId,
+        projectId: modelConfig?.projectId,
         webSearchEnabled: modelConfig?.webSearchEnabled,
         reasoningEnabled: modelConfig?.reasoningEnabled,
       });
@@ -253,7 +265,13 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
   const regenerateMessage = React.useCallback(
     async (
       assistantMessageId: string,
-      modelConfig?: { modelId: string; providerId?: string; webSearchEnabled?: boolean; reasoningEnabled?: boolean }
+      modelConfig?: {
+        modelId: string;
+        providerId?: string;
+        projectId?: string | null;
+        webSearchEnabled?: boolean;
+        reasoningEnabled?: boolean;
+      }
     ) => {
       const asstMsg = messages.find((m) => m.id === assistantMessageId);
       if (!asstMsg) return;
@@ -267,6 +285,7 @@ export function useChatSession(options: UseChatSessionOptions = {}) {
         parentMessageId: userParent.parentId ?? null,
         modelId: modelConfig?.modelId || "gpt-4o",
         providerId: modelConfig?.providerId,
+        projectId: modelConfig?.projectId,
         webSearchEnabled: modelConfig?.webSearchEnabled,
         reasoningEnabled: modelConfig?.reasoningEnabled,
       });

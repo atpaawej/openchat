@@ -2,17 +2,20 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Sparkles, Plus, Code, BookOpen, Compass, Lightbulb } from "lucide-react";
+import { Sparkles, Code, BookOpen, Compass, Lightbulb } from "lucide-react";
 import { Composer } from "@/features/composer/components/composer";
 import type { ComposerSubmitPayload } from "@/features/composer/types";
 import { ChatContainer } from "./chat-container";
 import { MessageList } from "./message-list";
+import { ChatShell } from "./chat-shell";
 import { useChatSession } from "../hooks/use-chat-session";
 import type { ChatMessage } from "../types";
 import { cn } from "@/lib/utils";
 
 export interface ChatInterfaceProps {
   initialSessionId?: string;
+  initialSessionTitle?: string;
+  projectId?: string;
   initialMessages?: ChatMessage[];
   defaultModel?: string;
   defaultProvider?: string;
@@ -44,6 +47,8 @@ const STARTER_PROMPTS = [
 
 export function ChatInterface({
   initialSessionId,
+  initialSessionTitle,
+  projectId,
   initialMessages = [],
   defaultModel = "gpt-4o",
   defaultProvider = "openai",
@@ -56,6 +61,7 @@ export function ChatInterface({
   const [webSearchEnabled, setWebSearchEnabled] = React.useState(false);
   const [reasoningEnabled, setReasoningEnabled] = React.useState(false);
   const [activeMcpCount, setActiveMcpCount] = React.useState(0);
+  const [sessionTitle, setSessionTitle] = React.useState(initialSessionTitle || "New chat");
 
   const {
     sessionId,
@@ -90,55 +96,39 @@ export function ChatInterface({
       window.history.pushState(null, "", `/c/${sessionId}`);
     }
 
+    if (!sessionTitle || sessionTitle === "New chat" || sessionTitle === "OpenChat") {
+      const generatedTitle =
+        payload.prompt.slice(0, 30) + (payload.prompt.length > 30 ? "..." : "");
+      setSessionTitle(generatedTitle);
+    }
+
     await sendMessage({
       prompt: payload.prompt,
       attachments: payload.attachments,
       modelId: payload.modelId || modelId,
       providerId: payload.providerId || providerId,
+      projectId,
       webSearchEnabled: payload.webSearchEnabled,
       searchEngine: payload.searchEngine || activeSearchProvider,
       reasoningEnabled: payload.reasoningEnabled,
     });
   };
 
-  const handleNewChat = () => {
-    router.push("/");
-  };
-
   const isEmpty = activeBranchMessages.length === 0;
 
   return (
-    <div className="flex flex-col h-screen w-full bg-zinc-50 dark:bg-[#212121] text-zinc-900 dark:text-zinc-100 overflow-hidden font-sans">
-      {/* Top Header */}
-      <header className="flex h-14 shrink-0 items-center justify-between px-4 border-b border-zinc-200/80 dark:border-zinc-800/80 bg-white/70 dark:bg-zinc-900/70 backdrop-blur-md z-10">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={handleNewChat}
-            className="flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-sm font-semibold hover:bg-zinc-200/60 dark:hover:bg-zinc-800/80 transition-colors"
-          >
-            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-zinc-900 text-white dark:bg-white dark:text-zinc-900 shadow-xs">
-              <Sparkles className="h-3.5 w-3.5" />
-            </div>
-            <span>OpenChat</span>
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleNewChat}
-            aria-label="New chat"
-            className="flex items-center gap-1.5 rounded-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 px-3 py-1.5 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 shadow-xs transition-colors"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            <span>New chat</span>
-          </button>
-        </div>
-      </header>
-
-      {/* Main Chat Workspace */}
-      <main className="relative flex flex-col flex-1 h-[calc(100vh-3.5rem)] overflow-hidden">
+    <ChatShell
+      threadTitle={sessionTitle}
+      selectedModelId={modelId}
+      selectedProviderId={providerId}
+      onModelChange={(newModel, newProvider) => {
+        setModelId(newModel);
+        setProviderId(newProvider);
+      }}
+      sessionId={sessionId}
+      projectId={projectId}
+    >
+      <div className="relative flex flex-col flex-1 h-full overflow-hidden">
         {isEmpty ? (
           /* Empty / Welcome State */
           <div className="flex flex-col flex-1 items-center justify-center px-4 pb-28 text-center max-w-3xl mx-auto w-full">
@@ -201,6 +191,7 @@ export function ChatInterface({
                 editMessage(msgId, newText, {
                   modelId,
                   providerId,
+                  projectId,
                   webSearchEnabled,
                   reasoningEnabled,
                 })
@@ -209,6 +200,7 @@ export function ChatInterface({
                 regenerateMessage(msgId, {
                   modelId,
                   providerId,
+                  projectId,
                   webSearchEnabled,
                   reasoningEnabled,
                 })
@@ -241,7 +233,7 @@ export function ChatInterface({
             />
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </ChatShell>
   );
 }

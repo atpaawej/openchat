@@ -6,6 +6,7 @@ import { convertMcpToolsToAiSdkTools } from "@/features/mcp/tool-adapter";
 import { pluginRegistry } from "@/features/plugins/registry";
 import { loadSettings, type OpenChatSettings } from "@/features/settings/config-file";
 import { messageRepository } from "./message-repository";
+import { projectRepository } from "@/features/projects/server/project-repository";
 import type { ChatTurnRequest, CitationItem, ToolCallItem } from "../types";
 
 export interface ParsedReasoning {
@@ -173,6 +174,7 @@ export class ChatService {
         title: initialTitle,
         model: modelId,
         provider: providerId || currentSettings.defaultProvider || "openai",
+        projectId: request.projectId ?? null,
       });
     }
 
@@ -203,6 +205,24 @@ export class ChatService {
       });
     }
 
+    // Prepare system prompt: reasoning instruction + global system prompt + project custom instructions
+    let baseSystemPrompt = reasoningEnabled
+      ? "You are OpenChat, an intelligent AI assistant. You reason deeply step by step inside <think>...</think> tags when considering complex problems, before providing your final answer."
+      : "You are OpenChat, a helpful, precise, and capable AI assistant.";
+
+    const globalPrompt = (currentSettings as any).systemPrompt;
+    if (globalPrompt && typeof globalPrompt === "string" && globalPrompt.trim()) {
+      baseSystemPrompt += `\n\n${globalPrompt.trim()}`;
+    }
+
+    const effectiveProjectId = request.projectId || session?.projectId;
+    if (effectiveProjectId) {
+      const projectKnowledge = projectRepository.getProjectKnowledgePrompt(effectiveProjectId);
+      if (projectKnowledge && projectKnowledge.trim()) {
+        baseSystemPrompt += `\n\n${projectKnowledge.trim()}`;
+      }
+    }
+
     // Call streamText
     const toolCount = Object.keys(tools).length;
     const streamResult = streamText({
@@ -210,9 +230,7 @@ export class ChatService {
       messages: coreMessages,
       tools: toolCount > 0 ? tools : undefined,
       stopWhen: isStepCount(toolCount > 0 ? 5 : 1),
-      system: reasoningEnabled
-        ? "You are OpenChat, an intelligent AI assistant. You reason deeply step by step inside <think>...</think> tags when considering complex problems, before providing your final answer."
-        : "You are OpenChat, a helpful, precise, and capable AI assistant.",
+      system: baseSystemPrompt,
     });
 
     const encoder = new TextEncoder();

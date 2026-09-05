@@ -55,6 +55,40 @@ export class MessageRepository {
     this.db.update(sessions).set(dataToUpdate).where(eq(sessions.id, sessionId)).run();
   }
 
+  listSessions(projectId?: string | null): Session[] {
+    let query = this.db.select().from(sessions);
+    if (projectId !== undefined) {
+      if (projectId === null) {
+        query = query.where(eq(sessions.projectId, null as any)) as any;
+      } else {
+        query = query.where(eq(sessions.projectId, projectId)) as any;
+      }
+    }
+    return query.orderBy(desc(sessions.pinned), desc(sessions.updatedAt)).all();
+  }
+
+  deleteSession(sessionId: string): void {
+    // Delete messages first
+    this.db.delete(messages).where(eq(messages.sessionId, sessionId)).run();
+    // Then delete session
+    this.db.delete(sessions).where(eq(sessions.id, sessionId)).run();
+  }
+
+  clearAllSessions(): void {
+    this.db.delete(messages).run();
+    this.db.delete(sessions).run();
+  }
+
+  exportAllData() {
+    const allSessions = this.db.select().from(sessions).all();
+    const allMessages = this.db.select().from(messages).all();
+    return {
+      sessions: allSessions,
+      messages: allMessages,
+      exportedAt: new Date().toISOString(),
+    };
+  }
+
   getMessages(sessionId: string): ChatMessage[] {
     const rows = this.db
       .select()

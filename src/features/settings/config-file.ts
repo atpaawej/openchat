@@ -137,6 +137,7 @@ export const OpenChatSettingsSchema = z.object({
   theme: z.enum(["system", "light", "dark"]).default("system"),
   defaultModel: z.string().default("gpt-4o"),
   defaultProvider: z.string().default("openai"),
+  systemPrompt: z.string().default(""),
   activeSearchProvider: z
     .enum(["duckduckgo", "tavily", "brave", "serper", "exa", "searxng"])
     .default("duckduckgo"),
@@ -184,6 +185,10 @@ export function getDefaultSettings(): OpenChatSettings {
  */
 export function mergeEnvironmentDefaults(settings: OpenChatSettings): OpenChatSettings {
   const merged: OpenChatSettings = structuredClone(settings);
+
+  if (!merged.systemPrompt && process.env["OPENCHAT_SYSTEM_PROMPT"]) {
+    merged.systemPrompt = process.env["OPENCHAT_SYSTEM_PROMPT"];
+  }
 
   // OpenAI
   if (!merged.providers.openai.apiKey && process.env["OPENAI_API_KEY"]) {

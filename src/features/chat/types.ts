@@ -39,6 +39,7 @@ export interface ChatTurnRequest {
   modelId: string;
   providerId?: string;
   sessionId: string;
+  projectId?: string | null;
   parentMessageId?: string | null;
   webSearchEnabled?: boolean;
   searchEngine?: string;
