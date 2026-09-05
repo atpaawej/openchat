@@ -40,3 +40,4 @@ pnpm-debug.log*
 *.db-journal
 *.db-wal
 *.db-shm
+/.worktrees/
