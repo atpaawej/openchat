@@ -23,7 +23,8 @@ export type SearchProviderConfig = z.infer<typeof SearchProviderConfigSchema>;
 export const McpServerConfigSchema = z.object({
   id: z.string().optional(),
   name: z.string(),
-  type: z.enum(["stdio", "sse"]).default("stdio"),
+  transport: z.enum(["stdio", "sse"]).default("stdio"),
+  type: z.enum(["stdio", "sse"]).optional(),
   command: z.string().optional(),
   args: z.array(z.string()).default([]),
   env: z.record(z.string(), z.string()).default({}),
